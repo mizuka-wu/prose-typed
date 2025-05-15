@@ -83,13 +83,9 @@ const DATA: string[] = [
 
   // 片段10 - 图片标题
   `### 图片示例`,
-
-  // 片段11 - 图片
-  `![示例图片](https://example.com/image.jpg "图片描述")`,
-
   // 片段12 - 结束段落
   `最后一个段落，总结文档内容。`,
-];
+].slice(0, 3);
 
 export function setupApplication(
   element: HTMLButtonElement,
