@@ -18,8 +18,7 @@ const DATA: string[] = [
 这是普通文本，包含一些 **加粗** 和 *斜体* 以及 ~~删除线~~ 文本。`,
 
   // 链接和图片
-  `[这是一个链接](https://example.com "链接标题")
-![这是一张图片](https://example.com/image.jpg "图片标题")`,
+  `[这是一个链接](https://example.com "链接标题")`,
 
   // 列表
   `- 无序列表项 1
@@ -124,7 +123,6 @@ export function setupApplication(
 
     const data = DATA.slice(0, index).join("\n");
     const node = defaultMarkdownParser.parse(data);
-    console.log("加载新的node", node);
     proseTyped!.updateNode(node);
   };
   element.addEventListener("click", () => next());

@@ -106,8 +106,6 @@ export class ProseTyped {
       this._currentPos -= 1;
     }
 
-    console.log(this._currentPos);
-
     this.typingTimeout = setTimeout(() => {
       this.typing();
     }, this.options.typingSpeed);
