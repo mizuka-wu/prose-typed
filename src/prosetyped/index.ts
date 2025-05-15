@@ -78,12 +78,10 @@ export class ProseTyped {
   typing() {
     this.clearBlinkTimeout();
     this.clearTypingTimeout();
-    this._targetPos = Math.max(this.currentNode.content.size, this._targetPos);
 
-    this._currentPos = Math.min(this._currentPos, this._targetPos); // 不能超过目标位置
     if (this._currentPos === this._targetPos) {
       // 如果有新的内容，则切换到新的内容继续输出
-      if (this.nextNode) {
+      if (this.nextNode && this.nextNode.nodeSize) {
         this.currentNode = this.nextNode;
         this.nextNode = null;
         this._targetPos = this.currentNode.content.size;
