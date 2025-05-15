@@ -1,4 +1,6 @@
+import { DOMSerializer } from "prosemirror-model";
 import { defaultMarkdownParser } from "prosemirror-markdown";
+import { ProseTyped } from "./prosetyped/index.ts";
 const DATA: string[] = [
   // 基本段落
   `这是一个简单的段落文本。`,
@@ -90,8 +92,28 @@ const DATA: string[] = [
   `最后一个段落，总结文档内容。`,
 ];
 
-export function setupApplication(element: HTMLButtonElement) {
+export function setupApplication(
+  element: HTMLButtonElement,
+  viewElement: HTMLDivElement
+) {
   let index = 0;
+  const emptyNode = defaultMarkdownParser.schema.topNodeType.createAndFill();
+  const proseTyped = new ProseTyped(emptyNode!);
+
+  proseTyped.on("view", (view) => {
+    const dom = DOMSerializer.fromSchema(
+      defaultMarkdownParser.schema
+    ).serializeFragment(view);
+    viewElement.innerHTML = "";
+    viewElement.appendChild(dom);
+  });
+
+  proseTyped.on("complete", () => {
+    if (index === DATA.length - 1) {
+      proseTyped.hideCursor();
+    }
+  });
+
   const next = () => {
     index++;
 
@@ -102,7 +124,8 @@ export function setupApplication(element: HTMLButtonElement) {
 
     const data = DATA.slice(0, index).join("\n");
     const node = defaultMarkdownParser.parse(data);
-    console.log(node);
+    console.log("加载新的node", node);
+    proseTyped!.updateNode(node);
   };
   element.addEventListener("click", () => next());
 }
