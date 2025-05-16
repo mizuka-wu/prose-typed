@@ -1,6 +1,5 @@
 import mitt from "mitt";
-import { Fragment, Slice } from "prosemirror-model";
-import type { Node, Attrs, Mark } from "prosemirror-model";
+import type { Node, Attrs, Mark, Fragment } from "prosemirror-model";
 import type { Emitter } from "mitt";
 
 export type IOptions = {
@@ -67,14 +66,11 @@ function insertText(
   pos: number,
   mark: null | Mark = null
 ): Node {
+  const textNode = node.type.schema.text(text, mark ? [mark] : null);
   return node.replace(
     pos,
     pos,
-    new Slice(
-      Fragment.from(node.type.schema.text(text, mark ? [mark] : null)),
-      0,
-      0
-    )
+    node.type.schema.topNodeType.create(null, textNode).slice(0)
   );
 }
 
@@ -217,6 +213,7 @@ export class ProseTyped {
         const cursorMarkType = this.options.cursorMark
           ? this.currentNode.type.schema.marks[this.options.cursorMark]
           : null;
+
         const cursorMark = cursorMarkType ? cursorMarkType.create() : null;
         this.emitter.emit(
           "view",
