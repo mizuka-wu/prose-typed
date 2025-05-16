@@ -21,6 +21,8 @@ export type IOptions = {
   )[];
 };
 
+const ZERO_WIDTH_TEXT = "\u200B";
+
 function compareAttrs(
   attrsPrev: Attrs,
   attrsNext: Attrs,
@@ -187,7 +189,9 @@ export class ProseTyped {
     )!;
 
     const isEmpty = !slice.content.textBetween(0, slice.content.size);
-    if (isEmpty) docNode = insertText(docNode, "\u200B", docNode.childCount);
+    if (isEmpty) {
+      docNode = insertText(docNode, ZERO_WIDTH_TEXT, docNode.childCount);
+    }
 
     if (this.options.showCursor) {
       if (!this.isRunning) {
