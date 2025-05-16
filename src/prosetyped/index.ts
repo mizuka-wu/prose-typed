@@ -1,5 +1,5 @@
 import mitt from "mitt";
-import type { Node } from "prosemirror-model";
+import type { Node, Attrs } from "prosemirror-model";
 import { Fragment, Slice } from "prosemirror-model";
 import type { Emitter } from "mitt";
 
@@ -8,7 +8,56 @@ export type IOptions = {
   typingSpeed: number;
   autoStart: boolean;
   blinkInterval: number;
+  cursorMark?: string;
+  /**
+   * 忽略的attributes
+   */
+  ignoreAttributes: (
+    | {
+        node: string;
+        attributes: string[];
+      }
+    | string
+  )[];
 };
+
+function compareAttrs(
+  attrsPrev: Attrs,
+  attrsNext: Attrs,
+  ignoreAttributes: string[]
+): boolean {
+  const keys = Array.from(Object.keys(attrsPrev)).filter(
+    (key) => !ignoreAttributes.includes(key)
+  );
+  if (!keys.length) return true;
+
+  if (
+    keys.some((key) => {
+      if (typeof attrsPrev[key] !== typeof attrsNext[key]) return true;
+
+      if (typeof attrsPrev[key] === "object") {
+        // 暂时不解析
+        return false;
+      }
+
+      return attrsPrev[key] !== attrsNext[key];
+    })
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function findSameTextLengthFromBegin(prev: string, next: string): number {
+  let index = 0;
+
+  for (; index < prev.length; index++) {
+    if (prev[index] !== next[index]) break;
+  }
+
+  return index;
+}
 
 export class ProseTyped {
   private emitter: Emitter<{
@@ -38,6 +87,8 @@ export class ProseTyped {
       typingSpeed: options?.typingSpeed ?? 1000 / 30,
       autoStart: options?.autoStart ?? true,
       blinkInterval: options?.blinkInterval ?? 500,
+      ignoreAttributes: options?.ignoreAttributes ?? [],
+      cursorMark: options?.cursorMark,
     };
 
     if (this.options.autoStart) {
@@ -138,10 +189,23 @@ export class ProseTyped {
         }
       });
       if (pos) {
+        const cursorMarkType = this.options.cursorMark
+          ? this.currentNode.type.schema.marks[this.options.cursorMark]
+          : null;
+        const cursorMark = cursorMarkType ? cursorMarkType.create() : null;
         const newDocNode = docNode.replace(
           pos,
           pos,
-          new Slice(Fragment.from(this.currentNode.type.schema.text("|")), 0, 0)
+          new Slice(
+            Fragment.from(
+              this.currentNode.type.schema.text(
+                "|",
+                cursorMark ? [cursorMark] : null
+              )
+            ),
+            0,
+            0
+          )
         );
 
         this.emitter.emit("view", newDocNode.content);
@@ -182,12 +246,48 @@ export class ProseTyped {
     this.clearTypingTimeout();
   }
 
-  updateNode(node: Node, showCursor?: boolean) {
-    this.nextNode = node;
+  updateNode(newNode: Node, showCursor?: boolean) {
+    this.nextNode = newNode;
+
+    let samePos = 0;
+    this.currentNode.descendants((_node, pos, _parent, index) => {
+      if (newNode.content.size < pos) return true; // 超过距离
+      const samePosResolve = newNode.resolve(pos); // 没有同层的resolve
+      if (!samePosResolve.parent) return true; // 找不到parent
+      if (samePosResolve.parent.childCount <= index) return true; // 没有同样index的node
+      const samePosNode = samePosResolve.parent.child(index);
+
+      // 比较是否一致
+      if (samePosNode.type !== _node.type) return true;
+
+      // attr是否一致
+      const ignoreAttributes = Array.from(
+        new Set(
+          this.options.ignoreAttributes.flatMap((ignoreAttribute) => {
+            if (typeof ignoreAttribute === "string") return ignoreAttribute;
+            if (ignoreAttribute.node === _node.type.name)
+              return ignoreAttribute.attributes;
+            return "";
+          })
+        )
+      ).filter((item) => item);
+
+      if (!compareAttrs(_node.attrs, samePosNode.attrs, ignoreAttributes))
+        return true;
+
+      const nodeSize = _node.isTextblock
+        ? findSameTextLengthFromBegin(
+            _node.textContent,
+            samePosNode.textContent
+          )
+        : _node.nodeSize;
+
+      samePos = pos + nodeSize;
+    });
 
     // 这里需要计算两个Node的差异，不过暂时先不管了
-    if (this._currentPos > node.content.size) {
-      this._targetPos = node.content.size;
+    if (this._currentPos > samePos) {
+      this._targetPos = samePos;
     }
     if (!this.isRunning) {
       if (showCursor) this.showCursor();
