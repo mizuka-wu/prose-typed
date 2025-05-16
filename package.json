@@ -1,20 +1,57 @@
 {
   "name": "prose-typed",
-  "private": true,
-  "version": "0.0.0",
+  "private": false,
+  "version": "0.1.0",
   "type": "module",
+  "description": "A typing effect library for ProseMirror",
+  "author": "",
+  "license": "MIT",
+  "keywords": [
+    "prosemirror",
+    "typing",
+    "effect"
+  ],
+  "main": "./dist/prose-typed.umd.js",
+  "module": "./dist/prose-typed.es.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/prose-typed.es.js",
+      "require": "./dist/prose-typed.umd.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:lib": "npm run build && npm run build:types",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build:lib"
+  },
+  "peerDependencies": {
+    "mitt": "^3.0.1",
+    "prosemirror-model": "^1.25.1"
   },
   "devDependencies": {
+    "@types/node": "^22.15.18",
     "prosemirror-model": "^1.25.1",
     "typescript": "~5.8.3",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "vite-plugin-dts": "^3.9.1"
   },
   "dependencies": {
     "mitt": "^3.0.1",
     "prosemirror-markdown": "^1.13.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mizuka-wu/prose-typed"
   }
 }

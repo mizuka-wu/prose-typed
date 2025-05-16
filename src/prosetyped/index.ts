@@ -88,10 +88,10 @@ export class ProseTyped {
   // 当前位置
   private _currentPos: number = 0;
 
-  private typingTimeout: number | null = null;
+  private typingTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // 闪烁效果
-  private blinkTimeout: number | null = null;
+  private blinkTimeout: ReturnType<typeof setTimeout> | null = null;
 
   options: IOptions;
 
