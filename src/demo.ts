@@ -104,7 +104,7 @@ export function setupApplication(
   });
 
   proseTyped.on("complete", () => {
-    if (index === DATA.length - 1) {
+    if (index === DATA.length) {
       proseTyped.hideCursor();
     }
   });

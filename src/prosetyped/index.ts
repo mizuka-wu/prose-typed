@@ -1,11 +1,11 @@
 import mitt from "mitt";
-import type { Node, Fragment } from "prosemirror-model";
+import type { Node } from "prosemirror-model";
+import { Fragment, Slice } from "prosemirror-model";
 import type { Emitter } from "mitt";
 
 export type IOptions = {
   showCursor: boolean;
   typingSpeed: number;
-  hideCursorAfterComplete: boolean;
   autoStart: boolean;
   blinkInterval: number;
 };
@@ -36,7 +36,6 @@ export class ProseTyped {
     this.options = {
       showCursor: options?.showCursor ?? true,
       typingSpeed: options?.typingSpeed ?? 1000 / 30,
-      hideCursorAfterComplete: options?.hideCursorAfterComplete ?? false,
       autoStart: options?.autoStart ?? true,
       blinkInterval: options?.blinkInterval ?? 500,
     };
@@ -112,11 +111,16 @@ export class ProseTyped {
   }
 
   generateView() {
-    let content = this.currentNode.slice(0, this._currentPos).content;
+    const slice = this.currentNode.slice(0, this._currentPos);
+    const docNode = this.currentNode.type.schema.topNodeType.createAndFill(
+      null,
+      slice.content
+    )!;
+
     if (this.options.showCursor) {
       if (!this.isRunning) {
         // 闪烁, 即下一次再返回一次没有cursor的状态
-        const blinkContent = content.cut(0);
+        const blinkContent = docNode.cut(0).content; // 重新创建一个slice
         this.blinkTimeout = setTimeout(() => {
           this.blinkTimeout = null;
           this.emitter.emit("view", blinkContent);
@@ -125,22 +129,26 @@ export class ProseTyped {
           }, this.options.blinkInterval);
         }, this.options.blinkInterval);
       }
-      // content = content.addToEnd(this.currentNode.type.schema.text("|"));
-      // 在内容末尾添加光标
-      // let lastTe: Node | null = null;
-      // content.descendants((_node) => {
-      //   if (_node.isTextblock) lastTextBlockNode = _node;
-      // });
-      // if (!lastTextBlockNode) {
-      //   content = content.addToEnd(this.currentNode.type.schema.text("|"));
-      // } else {
-      //   (lastTextBlockNode as Node).content.content.concat(
-      //     this.currentNode.type.schema.text("|")
-      //   );
-      // }
+
+      // 插入光标
+      let pos = 0;
+      docNode.descendants((node, _pos) => {
+        if (node.isTextblock) {
+          pos = _pos + node.nodeSize - 1;
+        }
+      });
+      if (pos) {
+        const newDocNode = docNode.replace(
+          pos,
+          pos,
+          new Slice(Fragment.from(this.currentNode.type.schema.text("|")), 0, 0)
+        );
+
+        this.emitter.emit("view", newDocNode.content);
+      }
+    } else {
+      this.emitter.emit("view", slice.content);
     }
-    // 插入光标
-    this.emitter.emit("view", content);
   }
 
   showCursor() {
@@ -174,7 +182,7 @@ export class ProseTyped {
     this.clearTypingTimeout();
   }
 
-  updateNode(node: Node) {
+  updateNode(node: Node, showCursor?: boolean) {
     this.nextNode = node;
 
     // 这里需要计算两个Node的差异，不过暂时先不管了
@@ -182,6 +190,7 @@ export class ProseTyped {
       this._targetPos = node.content.size;
     }
     if (!this.isRunning) {
+      if (showCursor) this.showCursor();
       this.start();
     }
   }
