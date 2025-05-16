@@ -6,6 +6,7 @@ export type IOptions = {
   showCursor: boolean;
   typingSpeed: number;
   autoStart: boolean;
+  delayStartTime: number;
   blinkInterval: number;
   cursorMark?: string;
   /**
@@ -93,6 +94,8 @@ export class ProseTyped {
   // 闪烁效果
   private blinkTimeout: ReturnType<typeof setTimeout> | null = null;
 
+  private createdTime = Date.now();
+
   options: IOptions;
 
   constructor(node: Node, options?: Partial<IOptions>) {
@@ -105,12 +108,13 @@ export class ProseTyped {
       blinkInterval: options?.blinkInterval ?? 500,
       ignoreAttributes: options?.ignoreAttributes ?? [],
       cursorMark: options?.cursorMark,
+      delayStartTime: options?.delayStartTime ?? 0,
     };
 
     if (this.options.autoStart) {
       setTimeout(() => {
         this.start();
-      });
+      }, this.options.delayStartTime);
     }
   }
 
@@ -314,7 +318,16 @@ export class ProseTyped {
     }
     if (!this.isRunning) {
       if (showCursor) this.showCursor();
-      this.start();
+
+      // 剩余还剩的启动时间
+      const startRestTime =
+        Math.max(
+          0,
+          this.createdTime + Math.max(this.options.delayStartTime, 0)
+        ) - Date.now();
+      setTimeout(() => {
+        this.start();
+      }, startRestTime);
     }
   }
 
