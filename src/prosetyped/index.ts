@@ -21,6 +21,7 @@ export type IOptions = {
 };
 
 const ZERO_WIDTH_TEXT = "\u200B";
+const EMPTY_TEXT = "\u2003";
 
 function compareAttrs(
   attrsPrev: Attrs,
@@ -190,18 +191,6 @@ export class ProseTyped {
     }
 
     if (this.options.showCursor) {
-      if (!this.isRunning) {
-        // 闪烁, 即下一次再返回一次没有cursor的状态
-        const blinkContent = docNode.cut(0).content; // 重新创建一个slice
-        this.blinkTimeout = setTimeout(() => {
-          this.blinkTimeout = null;
-          this.emitter.emit("view", blinkContent);
-          this.blinkTimeout = setTimeout(() => {
-            this.generateView();
-          }, this.options.blinkInterval);
-        }, this.options.blinkInterval);
-      }
-
       // 插入光标
       let pos = 0;
       docNode.descendants((node, _pos) => {
@@ -209,6 +198,30 @@ export class ProseTyped {
           pos = _pos + node.nodeSize - 1;
         }
       });
+
+      if (!this.isRunning) {
+        this.blinkTimeout = setTimeout(() => {
+          this.blinkTimeout = null;
+
+          if (this.options.showCursor) {
+            // 这里加一个占位字符
+            if (pos) {
+              this.emitter.emit(
+                "view",
+                insertText(docNode, EMPTY_TEXT, pos).content
+              );
+            } else {
+              const blinkContent = docNode.cut(0).content; // 重新创建一个slice
+              this.emitter.emit("view", blinkContent);
+            }
+
+            this.blinkTimeout = setTimeout(() => {
+              this.generateView();
+            }, this.options.blinkInterval);
+          }
+        }, this.options.blinkInterval);
+      }
+
       if (pos) {
         const cursorMarkType = this.options.cursorMark
           ? this.currentNode.type.schema.marks[this.options.cursorMark]
@@ -217,7 +230,7 @@ export class ProseTyped {
         const cursorMark = cursorMarkType ? cursorMarkType.create() : null;
         this.emitter.emit(
           "view",
-          insertText(docNode, "|", pos, cursorMark).content
+          insertText(docNode, "｜", pos, cursorMark).content
         );
       }
     } else {
