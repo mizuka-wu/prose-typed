@@ -1,6 +1,6 @@
 import mitt from "mitt";
-import type { Node, Attrs } from "prosemirror-model";
 import { Fragment, Slice } from "prosemirror-model";
+import type { Node, Attrs, Mark } from "prosemirror-model";
 import type { Emitter } from "mitt";
 
 export type IOptions = {
@@ -57,6 +57,23 @@ function findSameTextLengthFromBegin(prev: string, next: string): number {
   }
 
   return index;
+}
+
+function insertText(
+  node: Node,
+  text: string,
+  pos: number,
+  mark: null | Mark = null
+): Node {
+  return node.replace(
+    pos,
+    pos,
+    new Slice(
+      Fragment.from(node.type.schema.text(text, mark ? [mark] : null)),
+      0,
+      0
+    )
+  );
 }
 
 export class ProseTyped {
@@ -163,10 +180,15 @@ export class ProseTyped {
 
   generateView() {
     const slice = this.currentNode.slice(0, this._currentPos);
-    const docNode = this.currentNode.type.schema.topNodeType.createAndFill(
+    // 如果是无内容，还需要填补一个零宽字符
+    let docNode = this.currentNode.type.schema.topNodeType.createAndFill(
       null,
       slice.content
     )!;
+
+    const isEmpty = !slice.content.textBetween(0, slice.content.size);
+    if (isEmpty) docNode = insertText(docNode, "\u200B", docNode.childCount);
+    console.log(docNode);
 
     if (this.options.showCursor) {
       if (!this.isRunning) {
@@ -193,22 +215,10 @@ export class ProseTyped {
           ? this.currentNode.type.schema.marks[this.options.cursorMark]
           : null;
         const cursorMark = cursorMarkType ? cursorMarkType.create() : null;
-        const newDocNode = docNode.replace(
-          pos,
-          pos,
-          new Slice(
-            Fragment.from(
-              this.currentNode.type.schema.text(
-                "|",
-                cursorMark ? [cursorMark] : null
-              )
-            ),
-            0,
-            0
-          )
+        this.emitter.emit(
+          "view",
+          insertText(docNode, "|", pos, cursorMark).content
         );
-
-        this.emitter.emit("view", newDocNode.content);
       }
     } else {
       this.emitter.emit("view", slice.content);
