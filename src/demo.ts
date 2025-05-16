@@ -119,7 +119,7 @@ export function setupApplication(
 
     const data = DATA.slice(0, index).join("\n");
     const node = defaultMarkdownParser.parse(data);
-    proseTyped!.updateNode(node);
+    proseTyped!.updateNode(node, true);
   };
   element.addEventListener("click", () => next());
 }
