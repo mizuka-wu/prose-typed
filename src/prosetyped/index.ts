@@ -188,7 +188,6 @@ export class ProseTyped {
 
     const isEmpty = !slice.content.textBetween(0, slice.content.size);
     if (isEmpty) docNode = insertText(docNode, "\u200B", docNode.childCount);
-    console.log(docNode);
 
     if (this.options.showCursor) {
       if (!this.isRunning) {
