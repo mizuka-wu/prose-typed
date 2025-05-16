@@ -20,7 +20,7 @@ export type IOptions = {
   )[];
 };
 
-const ZERO_WIDTH_TEXT = "\u200B";
+// const ZERO_WIDTH_TEXT = "\u200B";
 const EMPTY_TEXT = "\u2003";
 
 function compareAttrs(
@@ -180,15 +180,15 @@ export class ProseTyped {
   generateView() {
     const slice = this.currentNode.slice(0, this._currentPos);
     // 如果是无内容，还需要填补一个零宽字符
-    let docNode = this.currentNode.type.schema.topNodeType.createAndFill(
+    const docNode = this.currentNode.type.schema.topNodeType.createAndFill(
       null,
       slice.content
     )!;
 
-    const isEmpty = !slice.content.textBetween(0, slice.content.size);
-    if (isEmpty) {
-      docNode = insertText(docNode, ZERO_WIDTH_TEXT, docNode.childCount);
-    }
+    // const isEmpty = !slice.content.textBetween(0, slice.content.size);
+    // if (isEmpty) {
+    //   docNode = insertText(docNode, ZERO_WIDTH_TEXT, docNode.childCount);
+    // }
 
     if (this.options.showCursor) {
       // 插入光标
