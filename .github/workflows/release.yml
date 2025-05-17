@@ -25,12 +25,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install PNPM
-        run: npm i -g pnpm
       - name: Install dependencies
-        run: pnpm install
+        run: npm install
       - name: Build
-        run: pnpm run build
+        run: npm run build
       - name: GH Release
         uses: softprops/action-gh-release@v0.1.5
         with:

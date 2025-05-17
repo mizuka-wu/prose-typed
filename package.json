@@ -16,9 +16,9 @@
   "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/types/index.d.ts",
       "import": "./dist/prose-typed.es.js",
-      "require": "./dist/prose-typed.umd.js",
-      "types": "./dist/types/index.d.ts"
+      "require": "./dist/prose-typed.umd.js"
     }
   },
   "files": [
@@ -29,6 +29,7 @@
     "build": "vite build",
     "build:types": "tsc --emitDeclarationOnly",
     "build:lib": "npm run build && npm run build:types",
+    "build:demo": "vite build --mode demo",
     "preview": "vite preview",
     "prepublishOnly": "npm run build:lib"
   },

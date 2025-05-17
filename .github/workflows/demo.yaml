@@ -34,12 +34,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install PNPM
-        run: npm i -g pnpm
       - name: Install dependencies
-        run: pnpm install
+        run: npm install
       - name: Build
-        run: pnpm run build:demo
+        run: npm run build:demo
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
