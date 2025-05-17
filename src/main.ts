@@ -1,6 +1,6 @@
 import "./style.css";
 
-import { DOMSerializer } from "prosemirror-model";
+import { DOMSerializer, Fragment } from "prosemirror-model";
 import { defaultMarkdownParser } from "prosemirror-markdown";
 import { EditorView } from "prosemirror-view";
 import { EditorState } from "prosemirror-state";
@@ -24,4 +24,27 @@ const prosemirrorEditor = new EditorView(prosemirrorEditorEl, {
     doc: doc,
     plugins: [],
   }),
+});
+
+const proseTyped = new ProseTyped(doc, {
+  autoStart: false,
+  showCursor: true,
+});
+
+const previewerEl = document.querySelector("#previewer") as HTMLDivElement;
+const renderProseTyped = (fragment: Fragment) => {
+  const html = DOMSerializer.fromSchema(schema).serializeFragment(fragment);
+  previewerEl.replaceChildren(html);
+};
+proseTyped.on("view", renderProseTyped);
+
+const startButton = document.querySelector(
+  "#start-button"
+) as HTMLButtonElement;
+startButton.addEventListener("click", () => {
+  if (!proseTyped.isRunning) {
+    proseTyped.start();
+  } else {
+    proseTyped.pause();
+  }
 });

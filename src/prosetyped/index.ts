@@ -115,6 +115,11 @@ export class ProseTyped {
       setTimeout(() => {
         this.start();
       }, this.options.delayStartTime);
+    } else {
+      // 模拟输出
+      setTimeout(() => {
+        this.generateView();
+      });
     }
   }
 

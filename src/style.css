@@ -33,17 +33,13 @@ body {
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
 #app {
   width: 100%;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   padding: 0 10px;
   box-sizing: border-box;
 }
@@ -63,6 +59,11 @@ h1 {
   margin: 0 8px;
   outline: none;
   resize: none;
+  padding: 0;
+}
+
+#start-button {
+  margin: 8px;
 }
 
 .ProseMirror {
