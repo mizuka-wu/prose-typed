@@ -1,7 +1,11 @@
 import "./style.css";
+import { debounce } from "lodash-es";
 
 import { DOMSerializer, Fragment } from "prosemirror-model";
-import { defaultMarkdownParser } from "prosemirror-markdown";
+import {
+  defaultMarkdownParser,
+  defaultMarkdownSerializer,
+} from "prosemirror-markdown";
 import { EditorView } from "prosemirror-view";
 import { EditorState } from "prosemirror-state";
 import { ProseTyped } from "./prosetyped/index.ts";
@@ -17,6 +21,12 @@ const prosemirrorEditorEl = document.querySelector(
 
 // 初始化
 markdownEditorEl.value = DATA;
+
+const handlePromiseMirrorContentChange = debounce((view: EditorView) => {
+  const newMarkdownValue = defaultMarkdownSerializer.serialize(view.state.doc);
+  markdownEditorEl.value = newMarkdownValue;
+}, 300);
+
 const schema = defaultMarkdownParser.schema;
 const doc = defaultMarkdownParser.parse(DATA);
 const prosemirrorEditor = new EditorView(prosemirrorEditorEl, {
@@ -24,12 +34,43 @@ const prosemirrorEditor = new EditorView(prosemirrorEditorEl, {
     doc: doc,
     plugins: [],
   }),
+  handleTextInput(view) {
+    if (view.composing) {
+      handlePromiseMirrorContentChange.cancel();
+    } else {
+      handlePromiseMirrorContentChange(view);
+    }
+    return false;
+  },
+  handleDOMEvents: {
+    compositionend(view) {
+      handlePromiseMirrorContentChange(view);
+      return true;
+    },
+  },
 });
 
 const proseTyped = new ProseTyped(doc, {
   autoStart: false,
   showCursor: true,
 });
+
+markdownEditorEl.oninput = debounce(() => {
+  const value = markdownEditorEl.value;
+  if (
+    value !== defaultMarkdownSerializer.serialize(prosemirrorEditor.state.doc)
+  ) {
+    const doc = defaultMarkdownParser.parse(value);
+    proseTyped.updateNode(doc);
+    prosemirrorEditor.dispatch(
+      prosemirrorEditor.state.tr.replace(
+        0,
+        prosemirrorEditor.state.doc.content.size,
+        doc.slice(0)
+      )
+    );
+  }
+}, 300);
 
 const previewerEl = document.querySelector("#previewer") as HTMLDivElement;
 const renderProseTyped = (fragment: Fragment) => {
