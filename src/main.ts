@@ -31,6 +31,8 @@ markdownEditorEl.value = DATA;
 const handlePromiseMirrorContentChange = debounce((view: EditorView) => {
   const newMarkdownValue = defaultMarkdownSerializer.serialize(view.state.doc);
   markdownEditorEl.value = newMarkdownValue;
+
+  proseTyped.updateNode(view.state.doc);
 }, 300);
 
 const schema = defaultMarkdownParser.schema;
@@ -61,7 +63,7 @@ const proseTyped = new ProseTyped(doc, {
   showCursor: true,
 });
 
-markdownEditorEl.oninput = debounce(() => {
+const syncMarkdownToOthers = debounce(() => {
   const value = markdownEditorEl.value;
   if (
     value !== defaultMarkdownSerializer.serialize(prosemirrorEditor.state.doc)
@@ -77,6 +79,9 @@ markdownEditorEl.oninput = debounce(() => {
     );
   }
 }, 300);
+
+markdownEditorEl.oninput = syncMarkdownToOthers;
+markdownEditorEl.onchange = syncMarkdownToOthers;
 
 const previewerEl = document.querySelector("#previewer") as HTMLDivElement;
 const renderProseTyped = (fragment: Fragment) => {
