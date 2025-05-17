@@ -96,6 +96,8 @@ export class ProseTyped {
 
   private createdTime = Date.now();
 
+  private isComplete = false;
+
   options: IOptions;
 
   constructor(node: Node, options?: Partial<IOptions>) {
@@ -163,11 +165,13 @@ export class ProseTyped {
 
         if (this._targetPos === this._currentPos) {
           this.generateView();
+          this.isComplete = true;
           this.emitter.emit("complete");
           return;
         }
       } else {
         this.generateView();
+        this.isComplete = true;
         this.emitter.emit("complete");
         return;
       }
@@ -270,6 +274,7 @@ export class ProseTyped {
     if (this._targetPos !== this.currentNode.content.size) {
       this._targetPos = this.currentNode.content.size;
       this.generateView();
+      this.isComplete = true;
       this.emitter.emit("complete");
     }
   }
@@ -324,15 +329,21 @@ export class ProseTyped {
     if (!this.isRunning) {
       if (showCursor) this.showCursor();
 
-      // 剩余还剩的启动时间
-      const startRestTime =
-        Math.max(
-          0,
-          this.createdTime + Math.max(this.options.delayStartTime, 0)
-        ) - Date.now();
-      setTimeout(() => {
+      if (this.isComplete) {
+        this.isComplete = false;
         this.start();
-      }, startRestTime);
+      } else if (this.options.autoStart) {
+        // 剩余还剩的启动时间
+        const startRestTime =
+          Math.max(
+            0,
+            this.createdTime + Math.max(this.options.delayStartTime, 0)
+          ) - Date.now();
+        setTimeout(() => {
+          this.isComplete = false;
+          this.start();
+        }, startRestTime);
+      }
     }
   }
 
