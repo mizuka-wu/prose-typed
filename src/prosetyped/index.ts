@@ -288,14 +288,14 @@ export class ProseTyped {
 
     let samePos = 0;
     this.currentNode.descendants((_node, pos, _parent, index) => {
-      if (newNode.content.size < pos) return true; // 超过距离
+      if (newNode.content.size < pos) return false; // 超过距离
       const samePosResolve = newNode.resolve(pos); // 没有同层的resolve
-      if (!samePosResolve.parent) return true; // 找不到parent
-      if (samePosResolve.parent.childCount <= index) return true; // 没有同样index的node
+      if (!samePosResolve.parent) return false; // 找不到parent
+      if (samePosResolve.parent.childCount <= index) return false; // 没有同样index的node
       const samePosNode = samePosResolve.parent.child(index);
 
       // 比较是否一致
-      if (samePosNode.type !== _node.type) return true;
+      if (samePosNode.type !== _node.type) return false;
 
       // attr是否一致
       const ignoreAttributes = Array.from(
@@ -310,16 +310,21 @@ export class ProseTyped {
       ).filter((item) => item);
 
       if (!compareAttrs(_node.attrs, samePosNode.attrs, ignoreAttributes))
-        return true;
+        return false;
 
-      const nodeSize = _node.isTextblock
-        ? findSameTextLengthFromBegin(
-            _node.textContent,
-            samePosNode.textContent
-          )
-        : _node.nodeSize;
+      if (_node.isTextblock) {
+        const sameTextSize = findSameTextLengthFromBegin(
+          _node.textContent,
+          samePosNode.textContent
+        );
+        samePos = pos + sameTextSize;
 
-      samePos = pos + nodeSize;
+        // 如果不是全匹配，可以停止了
+        if (sameTextSize !== samePosNode.textContent.length) return false;
+      } else {
+        samePos = pos + _node.nodeSize;
+      }
+      return true;
     });
 
     // 这里需要计算两个Node的差异，不过暂时先不管了
