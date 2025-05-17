@@ -1,5 +1,7 @@
 # ProseTyped
 
+![demo](./demo.gif)
+
 [English](./README.md) | 中文
 
 ProseTyped 是一个为 ProseMirror 设计的打字效果库，可以为你的编辑器添加打字机效果。

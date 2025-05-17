@@ -1,5 +1,7 @@
 # ProseTyped
 
+![demo](./demo.gif)
+
 English | [中文](./README_CN.md)
 
 ProseTyped is a typing effect library designed for ProseMirror, adding typewriter effects to your editor.
