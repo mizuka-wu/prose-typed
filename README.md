@@ -1,92 +1,154 @@
 # ProseTyped
 
-ProseTyped 是一个为 ProseMirror 设计的打字效果库，可以为你的编辑器添加打字机效果。
+English | [中文](./README_CN.md)
 
-## 安装
+ProseTyped is a typing effect library designed for ProseMirror, adding typewriter effects to your editor.
+
+## Installation
 
 ```bash
 npm install prose-typed
-# 或者
+# or
 yarn add prose-typed
 ```
 
-## 使用方法
+## Usage
 
-### 基本使用
+### Basic Usage
 
 ```typescript
 import { ProseTyped } from 'prose-typed';
 import { Schema, Node } from 'prosemirror-model';
 
-// 创建一个 ProseMirror 节点
+// Create a ProseMirror node
 const schema = new Schema({
-  // 你的 schema 配置
+  // Your schema configuration
 });
 const node = schema.node('doc', null, [
-  schema.node('paragraph', null, schema.text('这是一段将会有打字效果的文本'))
+  schema.node('paragraph', null, schema.text('This is text that will have a typing effect'))
 ]);
 
-// 创建 ProseTyped 实例
+// Create ProseTyped instance
 const proseTyped = new ProseTyped(node, {
-  // 可选配置
-  typingSpeed: 50, // 打字速度（毫秒）
-  showCursor: true, // 是否显示光标
-  autoStart: true, // 是否自动开始
+  // Optional configuration
+  typingSpeed: 50, // Typing speed (milliseconds)
+  showCursor: true, // Show cursor
+  autoStart: true, // Auto start
 });
 
-// 监听视图更新
+// Listen for view updates
 proseTyped.on('view', (fragment) => {
-  // 使用 fragment 更新你的视图
-  // 例如：editorView.dispatch(tr.replaceWith(0, editorView.state.doc.content.size, fragment));
+  // Use the fragment to update your view
+  // Example: editorView.dispatch(tr.replaceWith(0, editorView.state.doc.content.size, fragment));
 });
 
-// 监听完成事件
+// Listen for completion
 proseTyped.on('complete', () => {
-  console.log('打字效果完成');
+  console.log('Typing effect completed');
 });
 
-// 控制方法
-proseTyped.start(); // 开始打字效果
-proseTyped.pause(); // 暂停
-proseTyped.stop();  // 停止并跳到结束
-proseTyped.destroy(); // 销毁实例，清除计时器
+// Control methods
+proseTyped.start(); // Start typing effect
+proseTyped.pause(); // Pause
+proseTyped.stop();  // Stop and jump to end
+proseTyped.destroy(); // Destroy instance, clear timers
 ```
 
-### 配置选项
+## Event System
+
+ProseTyped uses mitt as its event system and provides the following events:
+
+| Event Name | Description | Parameters |
+| ---------- | ----------- | ---------- |
+| `view` | Triggered when the view updates | `Fragment` - ProseMirror document fragment |
+| `complete` | Triggered when typing effect completes | None |
+
+```typescript
+// Listen for view updates
+proseTyped.on('view', (fragment) => {
+  // Use fragment to update your view
+  const html = DOMSerializer.fromSchema(schema).serializeFragment(fragment);
+  previewerEl.replaceChildren(html);
+});
+
+// Listen for completion event
+proseTyped.on('complete', () => {
+  console.log('Typing effect completed');
+});
+
+// Remove event listener
+proseTyped.off('view', handlerFunction);
+```
+
+## Methods
+
+The ProseTyped class provides the following methods:
+
+| Method Name | Description | Parameters |
+| ----------- | ----------- | ---------- |
+| `start()` | Start or continue typing effect | None |
+| `pause()` | Pause typing effect | None |
+| `stop()` | Stop typing effect and jump to end | None |
+| `updateNode(newNode, showCursor?)` | Update node content | `newNode: Node` - New ProseMirror node  
+`showCursor?: boolean` - Whether to show cursor |
+| `showCursor()` | Show cursor | None |
+| `hideCursor()` | Hide cursor | None |
+| `destroy()` | Destroy instance, clear all timers | None |
+
+## Properties
+
+| Property Name | Type | Description |
+| ------------- | ---- | ----------- |
+| `isRunning` | `boolean` | Whether typing effect is running |
+| `on` | `Function` | Add event listener |
+| `off` | `Function` | Remove event listener |
+
+## Configuration Options
 
 ```typescript
 interface IOptions {
-  showCursor: boolean;       // 是否显示光标
-  typingSpeed: number;       // 打字速度（毫秒）
-  autoStart: boolean;        // 是否自动开始
-  blinkInterval: number;     // 光标闪烁间隔（毫秒）
-  cursorMark?: string;       // 光标使用的 mark 类型
-  ignoreAttributes: (        // 忽略的属性
+  showCursor: boolean;       // Whether to show cursor
+  typingSpeed: number;       // Typing speed (milliseconds)
+  autoStart: boolean;        // Whether to auto start
+  delayStartTime: number;    // Delay start time (milliseconds)
+  blinkInterval: number;     // Cursor blink interval (milliseconds)
+  cursorMark?: string;       // Mark type for cursor
+  ignoreAttributes: (        // Attributes to ignore
     | {
-        node: string;        // 节点类型
-        attributes: string[]; // 属性名称
+        node: string;        // Node type
+        attributes: string[]; // Attribute names
       }
     | string
   )[];
 }
 ```
 
-## 开发
+| Option Name | Type | Default | Description |
+| ----------- | ---- | ------- | ----------- |
+| `showCursor` | `boolean` | `true` | Whether to show cursor |
+| `typingSpeed` | `number` | `1000 / 30` | Typing speed (milliseconds) |
+| `autoStart` | `boolean` | `true` | Whether to auto start typing effect |
+| `delayStartTime` | `number` | `0` | Delay start time (milliseconds) |
+| `blinkInterval` | `number` | `500` | Cursor blink interval (milliseconds) |
+| `cursorMark` | `string` | `undefined` | Mark type for cursor, used for custom cursor styling |
+| `ignoreAttributes` | `Array` | `[]` | Attributes to ignore when comparing nodes |
+
+## Development
 
 ```bash
-# 安装依赖
+# Install dependencies
 npm install
 
-# 启动开发服务器
+# Start development server
 npm run dev
 
-# 构建库
+# Build library
 npm run build:lib
 
-# 预览
+# Preview
 npm run preview
 ```
 
-## 许可证
+## License
 
 MIT

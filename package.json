@@ -41,6 +41,7 @@
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^22.15.18",
     "lodash-es": "^4.17.21",
+    "prosemirror-example-setup": "^1.2.3",
     "prosemirror-model": "^1.25.1",
     "prosemirror-state": "^1.4.3",
     "prosemirror-view": "^1.39.3",

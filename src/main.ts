@@ -6,6 +6,7 @@ import {
   defaultMarkdownParser,
   defaultMarkdownSerializer,
 } from "prosemirror-markdown";
+import { exampleSetup } from "prosemirror-example-setup";
 import { EditorView } from "prosemirror-view";
 import { EditorState } from "prosemirror-state";
 import { ProseTyped } from "./prosetyped/index.ts";
@@ -37,7 +38,7 @@ const doc = defaultMarkdownParser.parse(DATA);
 const prosemirrorEditor = new EditorView(prosemirrorEditorEl, {
   state: EditorState.create({
     doc: doc,
-    plugins: [],
+    plugins: exampleSetup({ schema, menuBar: false }),
   }),
   handleTextInput(view) {
     if (view.composing) {
